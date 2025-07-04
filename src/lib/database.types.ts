@@ -16,8 +16,22 @@ export interface Database {
           company_name: string | null
           industry: string | null
           brand_voice: string | null
+          onboarding_completed: boolean
           created_at: string
           updated_at: string
+          company_size: string | null
+          role: string | null
+          website_url: string | null
+          target_audience: string | null
+          business_goals: string[] | null
+          brand_voice_tone: string | null
+          content_examples: string[] | null
+          key_messages: string | null
+          words_to_avoid: string | null
+          content_types: string[] | null
+          posting_frequency: string | null
+          content_themes: string[] | null
+          social_accounts: Json | null
         }
         Insert: {
           id: string
@@ -25,8 +39,22 @@ export interface Database {
           company_name?: string | null
           industry?: string | null
           brand_voice?: string | null
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
+          company_size?: string | null
+          role?: string | null
+          website_url?: string | null
+          target_audience?: string | null
+          business_goals?: string[] | null
+          brand_voice_tone?: string | null
+          content_examples?: string[] | null
+          key_messages?: string | null
+          words_to_avoid?: string | null
+          content_types?: string[] | null
+          posting_frequency?: string | null
+          content_themes?: string[] | null
+          social_accounts?: Json | null
         }
         Update: {
           id?: string
@@ -34,8 +62,22 @@ export interface Database {
           company_name?: string | null
           industry?: string | null
           brand_voice?: string | null
+          onboarding_completed?: boolean
           created_at?: string
           updated_at?: string
+          company_size?: string | null
+          role?: string | null
+          website_url?: string | null
+          target_audience?: string | null
+          business_goals?: string[] | null
+          brand_voice_tone?: string | null
+          content_examples?: string[] | null
+          key_messages?: string | null
+          words_to_avoid?: string | null
+          content_types?: string[] | null
+          posting_frequency?: string | null
+          content_themes?: string[] | null
+          social_accounts?: Json | null
         }
         Relationships: [
           {

@@ -35,6 +35,8 @@ export function LoginForm() {
       setSuccess('¡Email confirmado exitosamente! Ya puedes iniciar sesión.')
     } else if (message === 'signup_success') {
       setSuccess('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.')
+    } else if (message === 'check_email') {
+      setSuccess('Revisa tu bandeja de entrada. Si tu cuenta existe, recibirás instrucciones. Si es nueva, confirma tu email para activarla.')
     }
   }, [searchParams])
 
