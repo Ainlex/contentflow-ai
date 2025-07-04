@@ -1,6 +1,7 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { AuthRedirectProvider } from '@/components/auth/auth-redirect-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -9,8 +10,12 @@ export const metadata: Metadata = {
   description: 'Una aplicación moderna para gestión de contenido',
   keywords: ['content', 'management', 'nextjs', 'typescript'],
   authors: [{ name: 'ContentFlow Team' }],
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -21,9 +26,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <div className="min-h-screen bg-background">
-          {children}
-        </div>
+        <AuthRedirectProvider>
+          <div className="min-h-screen bg-background">
+            {children}
+          </div>
+        </AuthRedirectProvider>
       </body>
     </html>
   )

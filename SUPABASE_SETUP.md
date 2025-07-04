@@ -1,115 +1,195 @@
-# Configuración de Supabase para ContentFlow
+# Configuración Completa de Supabase para ContentFlow
 
-## Pasos para completar la integración
+## 🚀 **Funcionalidades Implementadas**
 
-### 1. Crear proyecto en Supabase
-1. Ve a [supabase.com](https://supabase.com)
-2. Crea una nueva cuenta o inicia sesión
-3. Crea un nuevo proyecto
-4. Anota la URL y las claves API
+### ✅ **Autenticación Completa**
+- [x] Login con email/contraseña
+- [x] Registro con email/contraseña
+- [x] OAuth con Google y LinkedIn
+- [x] Restablecimiento de contraseña
+- [x] Verificación de email
+- [x] Manejo de errores de autenticación
 
-### 2. Configurar variables de entorno
-Crea un archivo `.env.local` en la raíz del proyecto con:
+### ✅ **Páginas y Componentes**
+- [x] Página de login (`/auth/login`)
+- [x] Página de registro (`/auth/signup`)
+- [x] Página de reset password (`/auth/reset-password`)
+- [x] Página de error (`/auth/auth-code-error`)
+- [x] Callback OAuth (`/auth/callback`)
+- [x] Dashboard protegido (`/dashboard`)
+- [x] Onboarding (`/onboarding`)
 
-```env
+### ✅ **Funcionalidades Avanzadas**
+- [x] Creación automática de perfil
+- [x] Suscripción trial automática
+- [x] Tracking de uso
+- [x] Redirección post-login
+- [x] Middleware de protección
+- [x] Validación de formularios con Zod
+
+## 📋 **Configuración de Supabase**
+
+### 1. **Variables de Entorno**
+```bash
+# .env.local
 NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima
-SUPABASE_SERVICE_ROLE_KEY=tu_clave_service_role
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 ```
 
-### 3. Ejecutar el schema de la base de datos
-1. Ve al SQL Editor en tu dashboard de Supabase
-2. Copia y pega el contenido del archivo `database-schema.sql`
-3. Ejecuta el script
+### 2. **Configuración de Autenticación**
 
-### 4. Verificar la configuración
-Los siguientes archivos ya están creados y configurados:
+#### **A. Habilitar Proveedores**
+1. Ve a **Authentication > Providers**
+2. Habilita **Email** y **OAuth providers**
+3. Para OAuth, configura Google y LinkedIn
 
-- ✅ `lib/supabase.ts` - Cliente de Supabase
-- ✅ `lib/database.types.ts` - Tipos TypeScript
-- ✅ `lib/auth.ts` - Helpers de autenticación
-- ✅ `middleware.ts` - Middleware de autenticación
-- ✅ `database-schema.sql` - Schema de la base de datos
-
-### 5. Funcionalidades disponibles
-
-#### Autenticación
-```typescript
-import { getCurrentUser, getCurrentProfile } from '@/lib/auth'
-
-// En Server Components
-const user = await getCurrentUser()
-const profile = await getCurrentProfile()
+#### **B. Configurar URLs de Redirección**
+```
+# URLs de redirección para OAuth
+https://tu-dominio.com/auth/callback
+http://localhost:3000/auth/callback
 ```
 
-#### Cliente de Supabase
-```typescript
-import { supabase } from '@/lib/supabase'
+#### **C. Configurar Email Templates**
+1. Ve a **Authentication > Email Templates**
+2. Personaliza los templates de:
+   - Confirmación de email
+   - Restablecimiento de contraseña
+   - Invitación
 
-// En Client Components
-const { data, error } = await supabase
-  .from('profiles')
-  .select('*')
+### 3. **Base de Datos**
+
+#### **A. Ejecutar Schema**
+```sql
+-- Ejecuta el contenido de database-schema.sql
+-- Esto creará todas las tablas necesarias
 ```
 
-#### Helpers de perfil
-```typescript
-import { upsertProfile, getUserSubscription, getUserUsage } from '@/lib/auth'
+#### **B. Configurar RLS (Row Level Security)**
+```sql
+-- Habilitar RLS en todas las tablas
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usage_tracking ENABLE ROW LEVEL SECURITY;
 
-// Crear/actualizar perfil
-await upsertProfile({
-  id: user.id,
-  email: user.email,
-  company_name: 'Mi Empresa',
-  industry: 'Tecnología',
-  brand_voice: 'Profesional'
-})
+-- Políticas para profiles
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
 
-// Obtener suscripción
-const subscription = await getUserSubscription()
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
 
-// Obtener uso del mes
-const usage = await getUserUsage()
+-- Políticas para subscriptions
+CREATE POLICY "Users can view own subscription" ON subscriptions
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Políticas para usage_tracking
+CREATE POLICY "Users can view own usage" ON usage_tracking
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own usage" ON usage_tracking
+  FOR UPDATE USING (auth.uid() = user_id);
 ```
 
-### 6. Estructura de la base de datos
+#### **C. Ejecutar Triggers**
+```sql
+-- Ejecuta el contenido de database-triggers.sql
+-- Esto creará los triggers automáticos
+```
 
-#### Tabla `profiles`
-- Extiende `auth.users` de Supabase
-- Almacena información adicional del usuario
-- Se crea automáticamente al registrarse
+### 4. **Configuración de OAuth**
 
-#### Tabla `subscriptions`
-- Gestiona planes de suscripción
-- Tipos: trial, starter, professional, enterprise
-- Estados: active, cancelled, past_due
+#### **A. Google OAuth**
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un proyecto y habilita Google+ API
+3. Crea credenciales OAuth 2.0
+4. Agrega las URLs de redirección autorizadas
+5. Copia Client ID y Client Secret a Supabase
 
-#### Tabla `usage_tracking`
-- Rastrea el uso mensual
-- Generaciones de AI y cuentas sociales conectadas
-- Formato de mes: '2024-01'
+#### **B. LinkedIn OAuth**
+1. Ve a [LinkedIn Developers](https://www.linkedin.com/developers/)
+2. Crea una aplicación
+3. Configura las URLs de redirección
+4. Copia Client ID y Client Secret a Supabase
 
-### 7. Seguridad
-- Row Level Security (RLS) habilitado
-- Políticas para que usuarios solo vean sus propios datos
-- Trigger automático para crear perfiles
+## 🔧 **Configuración de Next.js**
 
-### 8. Próximos pasos
-1. Configurar autenticación en la UI
-2. Crear componentes de login/registro
-3. Implementar gestión de suscripciones
-4. Agregar tracking de uso
+### 1. **Middleware**
+El middleware está configurado para:
+- Proteger rutas `/dashboard` y `/onboarding`
+- Redirigir usuarios autenticados desde rutas de auth
+- Manejar errores de sesión
 
-## Solución de problemas
+### 2. **Componentes**
+- `AuthButton`: Botón de login/logout
+- `LoginForm`: Formulario de login
+- `SignupForm`: Formulario de registro
+- `ResetPasswordForm`: Formulario de reset
+- `AuthRedirectProvider`: Hook global para redirecciones
 
-### Error de tipos TypeScript
-Si ves errores de tipos, asegúrate de que:
-1. El archivo `lib/database.types.ts` existe
-2. Las variables de entorno están configuradas
-3. El schema se ejecutó correctamente en Supabase
+### 3. **Hooks**
+- `useAuth`: Hook para manejo de autenticación
+- `useAuthRedirect`: Hook para redirecciones automáticas
 
-### Error de conexión
-Verifica que:
-1. Las variables de entorno son correctas
-2. El proyecto de Supabase está activo
-3. Las claves API son válidas 
+## 🧪 **Testing**
+
+### 1. **Flujo de Registro**
+1. Ve a `/auth/signup`
+2. Completa el formulario
+3. Verifica que se cree el usuario en Supabase
+4. Verifica que se cree el perfil automáticamente
+5. Verifica que se cree la suscripción trial
+
+### 2. **Flujo de Login**
+1. Ve a `/auth/login`
+2. Inicia sesión
+3. Verifica redirección al dashboard
+4. Verifica que aparezca el botón de logout
+
+### 3. **Flujo OAuth**
+1. Haz clic en Google/LinkedIn
+2. Completa la autenticación
+3. Verifica redirección al callback
+4. Verifica redirección al dashboard
+
+### 4. **Flujo de Reset Password**
+1. Ve a `/auth/login`
+2. Haz clic en "¿Olvidaste tu contraseña?"
+3. Ingresa tu email
+4. Verifica que llegue el email
+5. Haz clic en el enlace
+6. Cambia la contraseña
+
+## 🚨 **Solución de Problemas**
+
+### **Error: AuthSessionMissingError**
+- Verifica que no haya llamadas a `getCurrentUser()` en Server Components
+- Asegúrate de que las páginas públicas no usen autenticación
+
+### **Error: OAuth no funciona**
+- Verifica las URLs de redirección en Supabase
+- Verifica las credenciales OAuth
+- Verifica que los dominios estén autorizados
+
+### **Error: Triggers no funcionan**
+- Verifica que los triggers estén ejecutados en Supabase
+- Verifica los permisos de las funciones
+- Revisa los logs de Supabase
+
+### **Error: RLS bloquea acceso**
+- Verifica que las políticas estén correctamente configuradas
+- Verifica que el usuario esté autenticado
+- Revisa los logs de Supabase
+
+## 📞 **Soporte**
+
+Si encuentras problemas:
+1. Revisa los logs de Supabase
+2. Verifica la configuración de variables de entorno
+3. Asegúrate de que todos los archivos estén en su lugar
+4. Contacta al equipo de desarrollo
+
+---
+
+**¡ContentFlow está listo para usar! 🎉** 
