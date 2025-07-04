@@ -10,7 +10,20 @@ CREATE TABLE profiles (
   brand_voice TEXT,
   onboarding_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  company_size TEXT,
+  role TEXT,
+  website_url TEXT,
+  target_audience TEXT,
+  business_goals TEXT[],
+  brand_voice_tone TEXT,
+  content_examples TEXT[],
+  key_messages TEXT,
+  words_to_avoid TEXT,
+  content_types TEXT[],
+  posting_frequency TEXT,
+  content_themes TEXT[],
+  social_accounts JSONB
 );
 
 -- Subscriptions table

@@ -59,13 +59,14 @@ export function SignupForm() {
 
       if (error) {
         setError(error.message)
-      } else if (authData.user) {
-        setSuccess('¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.')
+      } else {
+        // Mensaje unificado que no revela si el email existe o no
+        setSuccess('Si este email no está registrado, se ha creado tu cuenta. Si ya tienes una cuenta, recibirás instrucciones para acceder. Revisa tu bandeja de entrada.')
         
-        // Redirigir al onboarding después del registro exitoso
+        // Redirigir al login después de un tiempo
         setTimeout(() => {
-          router.push('/onboarding')
-        }, 2000)
+          router.push('/auth/login?message=check_email')
+        }, 4000)
       }
     } catch (err) {
       setError('Error inesperado. Intenta de nuevo.')
