@@ -27,8 +27,58 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired - required for Server Components
-  await supabase.auth.getUser()
+  // Rutas que requieren autenticación
+  const protectedRoutes = ['/dashboard', '/onboarding']
+  const isProtectedRoute = protectedRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  // Rutas de autenticación (para usuarios ya autenticados)
+  const authRoutes = ['/auth/login', '/auth/signup']
+  const isAuthRoute = authRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  // Solo verificar autenticación en rutas protegidas o de auth
+  if (isProtectedRoute || isAuthRoute) {
+    try {
+      // Refresh session if expired - required for Server Components
+      const { data: { user }, error } = await supabase.auth.getUser()
+      
+      if (error) {
+        console.log('Auth error in middleware:', error)
+        // Para rutas protegidas, redirigir a login si hay error de sesión
+        if (isProtectedRoute) {
+          const redirectUrl = new URL('/auth/login', request.url)
+          redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+          return NextResponse.redirect(redirectUrl)
+        }
+        return supabaseResponse
+      }
+
+      // Si es una ruta protegida y no hay usuario, redirigir a login
+      if (isProtectedRoute && !user) {
+        const redirectUrl = new URL('/auth/login', request.url)
+        redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+        return NextResponse.redirect(redirectUrl)
+      }
+
+      // Si es una ruta de auth y hay usuario, redirigir a dashboard
+      if (isAuthRoute && user) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    } catch (error) {
+      // Si hay error de sesión, continuar sin autenticación
+      console.log('Auth session error in middleware:', error)
+      
+      // Para rutas protegidas, redirigir a login si hay error de sesión
+      if (isProtectedRoute) {
+        const redirectUrl = new URL('/auth/login', request.url)
+        redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+        return NextResponse.redirect(redirectUrl)
+      }
+    }
+  }
 
   return supabaseResponse
 }

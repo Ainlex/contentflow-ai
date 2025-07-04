@@ -8,6 +8,7 @@ CREATE TABLE profiles (
   company_name TEXT,
   industry TEXT,
   brand_voice TEXT,
+  onboarding_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
