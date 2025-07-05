@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthRedirectProvider } from '@/components/auth/auth-redirect-provider'
+import { ToastProvider } from '@/components/ui/toast'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,9 +28,11 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <AuthRedirectProvider>
-          <div className="min-h-screen bg-background">
-            {children}
-          </div>
+          <ToastProvider>
+            <div className="min-h-screen bg-background">
+              {children}
+            </div>
+          </ToastProvider>
         </AuthRedirectProvider>
       </body>
     </html>

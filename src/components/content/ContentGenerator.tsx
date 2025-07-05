@@ -6,6 +6,8 @@ import { ContentType, ToneType, CONTENT_PLATFORMS, TONE_OPTIONS } from '@/types/
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import ContentRecycler from './ContentRecycler'
 
 export function ContentGenerator() {
   const [formData, setFormData] = useState({
@@ -66,7 +68,14 @@ export function ContentGenerator() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+          <Tabs defaultValue="generate" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="generate">Generar Contenido</TabsTrigger>
+              <TabsTrigger value="recycle">Reciclar Contenido</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="generate" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
             {/* Formulario */}
             <div className="space-y-6">
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,7 +98,7 @@ export function ContentGenerator() {
                   <Input
                     id="audience"
                     type="text"
-                    placeholder="Ej: Emprendedores y dueños de pequeñas empresas"
+                    placeholder="e.g. marketing managers, content creators, agencias B2B"
                     value={formData.targetAudience}
                     onChange={(e) => handleInputChange('targetAudience', e.target.value)}
                     required
@@ -254,16 +263,35 @@ export function ContentGenerator() {
                   )}
 
                   {generatedContent && (
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-900 font-sans">
-                        {generatedContent}
-                        {isGenerating && (
-                          <span className="animate-pulse bg-blue-500 text-blue-500 ml-1">
-                            |
-                          </span>
-                        )}
-                      </pre>
-                    </div>
+                    formData.contentType === 'email' ? (
+                      (() => {
+                        // Intentar extraer subject y body
+                        const subjectMatch = generatedContent.match(/subject\s*[:\-]?\s*(.*)/i);
+                        const bodyMatch = generatedContent.match(/body\s*[:\-]?\s*([\s\S]*)/i);
+                        const subject = subjectMatch ? subjectMatch[1].trim() : '';
+                        const body = bodyMatch ? bodyMatch[1].trim() : generatedContent;
+                        return (
+                          <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-2">
+                            <div>
+                              <span className="font-semibold">Subject:</span> {subject || 'No detectado'}
+                            </div>
+                            <div>
+                              <span className="font-semibold">Body:</span>
+                              <pre className="whitespace-pre-wrap text-sm text-gray-900 font-sans mt-1">{body}</pre>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      <div className="bg-white rounded-lg border border-gray-200 p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-900 font-sans">
+                          {generatedContent}
+                          {isGenerating && (
+                            <span className="animate-pulse bg-blue-500 text-blue-500 ml-1">|</span>
+                          )}
+                        </pre>
+                      </div>
+                    )
                   )}
 
                   {!generatedContent && !isGenerating && !error && (
@@ -289,6 +317,19 @@ export function ContentGenerator() {
               </div>
             </div>
           </div>
+            </TabsContent>
+
+            <TabsContent value="recycle" className="space-y-6">
+              <div className="p-6">
+                <ContentRecycler 
+                  initialContent={generatedContent || ''}
+                  onContentGenerated={(recycledContent) => {
+                    console.log('Contenido reciclado:', recycledContent);
+                  }}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
