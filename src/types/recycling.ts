@@ -43,6 +43,11 @@ export interface PlatformMetadata {
   };
   email?: {
     subject: string;
+    greeting: string;
+    intro: string;
+    body: string;
+    callToAction: string;
+    signature: string;
     previewText?: string;
   };
   quotes?: {
@@ -76,7 +81,7 @@ export interface PlatformConfig {
 export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
   linkedin: {
     platform: 'linkedin',
-    maxCharacters: 1300,
+    maxCharacters: 3000,
     hashtagLimit: 5,
     tone: 'professional',
     format: 'post',
@@ -100,7 +105,7 @@ export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
   },
   facebook: {
     platform: 'facebook',
-    maxCharacters: 63206,
+    maxCharacters: 500,
     hashtagLimit: 8,
     tone: 'conversational',
     format: 'post',
@@ -108,7 +113,7 @@ export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
   },
   email: {
     platform: 'email',
-    maxCharacters: 5000,
+    maxCharacters: 10000,
     hashtagLimit: 0,
     tone: 'professional',
     format: 'newsletter',
@@ -116,7 +121,7 @@ export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
   },
   quotes: {
     platform: 'quotes',
-    maxCharacters: 200,
+    maxCharacters: 150,
     hashtagLimit: 0,
     tone: 'inspirational',
     format: 'quote',

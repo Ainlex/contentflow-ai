@@ -33,12 +33,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Agregar métricas de performance
-    const response: RecyclingResponse & { metrics: { processingTime: number } } = {
+    // Agregar métricas de performance y costData
+    const response = {
       ...result,
       metrics: {
         processingTime
-      }
+      },
+      costData: result.costData
     };
 
     return NextResponse.json(response, { status: 200 });
