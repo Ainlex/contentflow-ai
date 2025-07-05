@@ -2,28 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { User, Building, Volume2, Bell, Settings } from 'lucide-react'
 import { createClientSupabaseClient } from '@/lib/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { 
-  Settings, 
-  User, 
-  Building, 
-  Globe, 
-  Save,
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
-  Link,
-  Unlink
-} from 'lucide-react'
+import { Database } from '@/lib/database.types'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { ToastProvider } from '@/components/ui/toast'
+import { ProfileTab } from '@/components/settings/profile-tab'
+import { CompanyTab } from '@/components/settings/company-tab'
+import { BrandVoiceTab } from '@/components/settings/brand-voice-tab'
+import { NotificationsTab } from '@/components/settings/notifications-tab'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile')
   const router = useRouter()
   const supabase = createClientSupabaseClient()
 
@@ -44,12 +38,12 @@ export default function SettingsPage() {
           .single()
 
         if (profileError) {
-          console.log('Error fetching profile:', profileError)
+          console.error('Error fetching profile:', profileError)
         } else {
           setProfile(profileData)
         }
       } catch (err) {
-        console.log('Error fetching profile:', err)
+        console.error('Error fetching profile:', err)
       } finally {
         setLoading(false)
       }
@@ -58,30 +52,8 @@ export default function SettingsPage() {
     fetchProfile()
   }, [router, supabase])
 
-  const handleSave = async () => {
-    if (!profile) return
-    
-    setSaving(true)
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          company_name: profile.company_name,
-          website_url: profile.website_url,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', profile.id)
-
-      if (error) {
-        console.error('Error updating profile:', error)
-      } else {
-        console.log('Profile updated successfully')
-      }
-    } catch (err) {
-      console.error('Error saving profile:', err)
-    } finally {
-      setSaving(false)
-    }
+  const handleProfileUpdate = (updatedProfile: Profile) => {
+    setProfile(updatedProfile)
   }
 
   if (loading) {
@@ -96,166 +68,90 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
-          <p className="text-gray-600">Gestiona tu perfil y configuración de cuenta</p>
+    <ToastProvider>
+      <div className="max-w-6xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-2">
+            <Settings className="h-8 w-8 text-gray-700" />
+            <h1 className="text-3xl font-bold text-gray-900">Configuración</h1>
+          </div>
+          <p className="text-gray-600">
+            Gestiona tu perfil, información de empresa, voz de marca y notificaciones
+          </p>
         </div>
+
+        {/* Tabs Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="profile" className="flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span>Perfil</span>
+            </TabsTrigger>
+            <TabsTrigger value="company" className="flex items-center space-x-2">
+              <Building className="h-4 w-4" />
+              <span>Empresa</span>
+            </TabsTrigger>
+            <TabsTrigger value="brand-voice" className="flex items-center space-x-2">
+              <Volume2 className="h-4 w-4" />
+              <span>Voz de Marca</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center space-x-2">
+              <Bell className="h-4 w-4" />
+              <span>Notificaciones</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab Contents */}
+          <TabsContent value="profile" className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+              <h2 className="text-xl font-semibold text-blue-900 mb-2">
+                Información Personal
+              </h2>
+              <p className="text-blue-700">
+                Gestiona tu información personal, foto de perfil y configuración de seguridad
+              </p>
+            </div>
+            <ProfileTab profile={profile} onProfileUpdate={handleProfileUpdate} />
+          </TabsContent>
+
+          <TabsContent value="company" className="space-y-6">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
+              <h2 className="text-xl font-semibold text-green-900 mb-2">
+                Información de Empresa
+              </h2>
+              <p className="text-green-700">
+                Configura los datos de tu empresa, industria y objetivos de negocio
+              </p>
+            </div>
+            <CompanyTab profile={profile} onProfileUpdate={handleProfileUpdate} />
+          </TabsContent>
+
+          <TabsContent value="brand-voice" className="space-y-6">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200">
+              <h2 className="text-xl font-semibold text-purple-900 mb-2">
+                Voz de Marca
+              </h2>
+              <p className="text-purple-700">
+                Define el tono y personalidad de tu marca para generar contenido consistente
+              </p>
+            </div>
+            <BrandVoiceTab profile={profile} onProfileUpdate={handleProfileUpdate} />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 p-6 rounded-lg border border-orange-200">
+              <h2 className="text-xl font-semibold text-orange-900 mb-2">
+                Preferencias de Notificaciones
+              </h2>
+              <p className="text-orange-700">
+                Configura cómo y cuándo quieres recibir notificaciones
+              </p>
+            </div>
+            <NotificationsTab profile={profile} onProfileUpdate={handleProfileUpdate} />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* Profile Settings */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center space-x-2 mb-6">
-          <User className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Perfil de Usuario</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="company_name">Nombre de la Empresa</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="company_name"
-                  value={profile?.company_name || ''}
-                  onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="email"
-                  value={profile?.email || ''}
-                  disabled
-                  className="pl-10 bg-gray-50"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="website_url">Sitio Web</Label>
-            <div className="relative">
-              <Globe className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="website_url"
-                value={profile?.website_url || ''}
-                onChange={(e) => setProfile({ ...profile, website_url: e.target.value })}
-                className="pl-10"
-                placeholder="https://miempresa.com"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center space-x-2"
-            >
-              <Save className="h-4 w-4" />
-              <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Social Media Connections */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center space-x-2 mb-6">
-          <Link className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Redes Sociales</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Facebook className="h-6 w-6 text-blue-600" />
-              <div>
-                <p className="font-medium text-gray-900">Facebook</p>
-                <p className="text-sm text-gray-500">Conecta tu página de Facebook</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">
-              <Link className="h-4 w-4 mr-2" />
-              Conectar
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Twitter className="h-6 w-6 text-blue-500" />
-              <div>
-                <p className="font-medium text-gray-900">Twitter</p>
-                <p className="text-sm text-gray-500">Conecta tu cuenta de Twitter</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">
-              <Link className="h-4 w-4 mr-2" />
-              Conectar
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Instagram className="h-6 w-6 text-pink-600" />
-              <div>
-                <p className="font-medium text-gray-900">Instagram</p>
-                <p className="text-sm text-gray-500">Conecta tu cuenta de Instagram</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">
-              <Link className="h-4 w-4 mr-2" />
-              Conectar
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <Linkedin className="h-6 w-6 text-blue-700" />
-              <div>
-                <p className="font-medium text-gray-900">LinkedIn</p>
-                <p className="text-sm text-gray-500">Conecta tu perfil de LinkedIn</p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">
-              <Link className="h-4 w-4 mr-2" />
-              Conectar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Onboarding Reset */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <div className="flex items-center space-x-2 mb-6">
-          <Settings className="h-5 w-5 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-900">Configuración Avanzada</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-            <div>
-              <p className="font-medium text-gray-900">Reconfigurar Cuenta</p>
-              <p className="text-sm text-gray-500">Volver a ejecutar el proceso de configuración inicial</p>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => router.push('/onboarding')}
-            >
-              Reconfigurar
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </ToastProvider>
   )
 } 
