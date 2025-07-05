@@ -48,30 +48,17 @@ const PLATFORM_PROMPTS = {
   },
   email: {
     maxLength: 10000,
-    format: `Generate a professional email newsletter for a B2B SaaS audience.
-AUDIENCE: Marketing managers, content creators, agency owners, solopreneurs
-TONE: Professional but approachable, action-oriented
-LENGTH: 300-800 words (concise and valuable)
-STRUCTURE:
+    format: `Generate a professional B2B SaaS email newsletter with the following structure:
+Subject: [Compelling subject line]
+Greeting: Hola {{name}},
+Intro: [Personalized hook/intro, 1-2 sentences]
+Body: [Main content, 2-3 business-oriented paragraphs]
+CallToAction: [Clear, specific CTA]
+Signature: Saludos, [Nombre/Equipo]\n{{company}}
 
-Subject line: Clear value proposition (40-50 chars)
-Personalized greeting with {{name}}
-Brief intro (2-3 sentences max)
-Main content: Actionable insights, tips, or case studies
-Clear call-to-action
-Professional signature block
-
-AVOID: Generic corporate speak, overly long explanations, vague promises
-INCLUDE: Specific benefits, real examples, clear next steps
-Topic: [USER_TOPIC]
-Target Audience: [USER_AUDIENCE]
-Tone: [USER_TONE]
-
-BUSINESS CONTEXT INTEGRATION:
-- Si topic es general → orientar hacia content marketing
-- Si audience es "empresas" → focus en B2B marketing
-- Si tone es "professional" → SaaS industry language
-- Incluir placeholder {{company}} para personalization`,
+- Use professional, direct, and relevant language for B2B SaaS
+- Do not use generic or informal phrases
+- Return ONLY a valid JSON with keys: subject, greeting, intro, body, callToAction, signature`,
   },
 }
 

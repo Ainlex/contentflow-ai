@@ -27,6 +27,7 @@ import {
   Mail,
   Quote
 } from 'lucide-react';
+import { saveCostBreakdown } from '@/lib/costCalculator';
 
 interface ContentRecyclerProps {
   initialContent?: string;
@@ -94,6 +95,25 @@ export default function ContentRecycler({ initialContent = '', onContentGenerate
       setRecycledContent(result.recycledContent);
       onContentGenerated?.(result.recycledContent);
 
+      // Guardar breakdown de costos de reciclaje en el CostTracker
+      if (result.costData && result.costData.platformBreakdown) {
+        Object.entries(result.costData.platformBreakdown).forEach(([platform, data]) => {
+          if (typeof data === 'object' && data !== null && 'tokens' in data && 'cost' in data) {
+            const tokens = Number((data as any).tokens);
+            const cost = Number((data as any).cost);
+            saveCostBreakdown({
+              inputTokens: 0,
+              outputTokens: tokens,
+              inputCost: 0,
+              outputCost: cost,
+              totalCost: cost,
+              model: 'gpt-4o-mini',
+              timestamp: new Date(),
+            });
+          }
+        });
+      }
+
       // Mostrar métricas de performance
       if (result.metrics?.processingTime) {
         console.log(`Tiempo de procesamiento: ${result.metrics.processingTime}ms`);
@@ -153,7 +173,54 @@ export default function ContentRecycler({ initialContent = '', onContentGenerate
   const renderFormatContent = (format: ContentFormat) => {
     const config = PLATFORM_CONFIGS[format.platform];
     const IconComponent = platformIcons[format.platform];
-
+    // EMAIL: usar metadata estructurada
+    if (format.platform === 'email' && format.metadata?.email) {
+      const email = format.metadata.email;
+      return (
+        <div className="bg-white rounded-lg border p-4 space-y-2">
+          <div className="font-semibold">Subject: {email.subject}</div>
+          <div className="font-semibold">{email.greeting}</div>
+          <div className="mb-2">{email.intro}</div>
+          <div className="font-semibold">Body:</div>
+          <div className="bg-gray-50 p-3 rounded-md">{email.body}</div>
+          <div className="mt-2"><span className="font-semibold">CTA:</span> {email.callToAction}</div>
+          <div className="mt-2"><span className="font-semibold">Firma:</span> {email.signature}</div>
+        </div>
+      );
+    }
+    // Fallback email: mostrar como texto plano
+    if (format.platform === 'email') {
+      return (
+        <div className="bg-white rounded-lg border p-4">
+          <pre className="whitespace-pre-wrap text-sm text-gray-900 font-sans">{format.content}</pre>
+        </div>
+      );
+    }
+    // QUOTES: usar array de objetos y config.maxCharacters
+    if (format.platform === 'quotes' && Array.isArray(format.content) && format.content.length > 0 && typeof format.content[0] === 'object' && 'quote' in format.content[0]) {
+      return format.content.map((q: { quote: string, characterCount: number }, idx: number) => (
+        <div key={q.quote + '-' + q.characterCount + '-' + idx} className="bg-white rounded-lg border p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={`p-2 rounded-full ${platformColors[format.platform]}`}>
+                <IconComponent className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold capitalize">{format.platform} (Cita {idx + 1})</h3>
+                <p className="text-sm text-gray-500">{config.description}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className={`text-sm ${getCharacterCountColor(q.characterCount, config.maxCharacters)}`}>
+                {q.characterCount}/{config.maxCharacters}
+              </span>
+            </div>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-md whitespace-pre-wrap">{q.quote}</div>
+        </div>
+      ));
+    }
+    // RESTO DE PLATAFORMAS
     return (
       <div key={format.id} className="bg-white rounded-lg border p-4 space-y-3">
         <div className="flex items-center justify-between">
@@ -177,45 +244,20 @@ export default function ContentRecycler({ initialContent = '', onContentGenerate
             )}
           </div>
         </div>
-
         <div className="space-y-2">
-          {editingFormat === format.id ? (
-            <div className="space-y-2">
-              <textarea
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="w-full p-3 border rounded-md resize-none"
-                rows={4}
-              />
-              <div className="flex space-x-2">
-                <Button size="sm" onClick={() => saveEdit(format.id)}>
-                  <Save className="w-4 h-4 mr-1" />
-                  Guardar
-                </Button>
-                <Button size="sm" variant="outline" onClick={cancelEdit}>
-                  <X className="w-4 h-4 mr-1" />
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <div className="bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
-                {format.content}
-              </div>
-              {format.hashtags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {format.hashtags.map((tag, index) => (
-                    <span key={index} className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+          <div className="bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+            {format.content}
+          </div>
+          {format.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {format.hashtags.map((tag, index) => (
+                <span key={tag + '-' + index} className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {tag}
+                </span>
+              ))}
             </div>
           )}
         </div>
-
         <div className="flex justify-between items-center">
           <div className="flex space-x-2">
             {editingFormat !== format.id && (
@@ -328,43 +370,74 @@ export default function ContentRecycler({ initialContent = '', onContentGenerate
       )}
 
       {/* Results Section */}
-      {normalizedRecycledContent && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Contenido Reciclado</h2>
-            <span className="text-sm text-gray-500">
-              Generado el {normalizedRecycledContent.createdAt.toLocaleDateString()}
-            </span>
-          </div>
-
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              {Object.keys(PLATFORM_CONFIGS).map((platform) => (
-                <TabsTrigger key={platform} value={platform} className="capitalize">
-                  {platform}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="all" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {normalizedRecycledContent.formats.map(renderFormatContent)}
+      {normalizedRecycledContent && (() => {
+        const costData = (normalizedRecycledContent as any).costData;
+        return (
+          <div className="space-y-4">
+            {/* Mostrar costo de reciclaje si está disponible */}
+            {costData && typeof costData === 'object' && typeof costData.totalCost === 'number' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                  <span className="font-semibold">Costo de reciclaje:</span> ${costData.totalCost.toFixed(4)} USD
+                  <span className="ml-4 font-semibold">Tokens usados:</span> {costData.totalTokens}
+                </div>
+                {costData.platformBreakdown && typeof costData.platformBreakdown === 'object' && (
+                  <div className="mt-2 md:mt-0 text-xs text-gray-600">
+                    {Object.entries(costData.platformBreakdown).map(([platform, data]) => (
+                      typeof data === 'object' && data !== null && 'tokens' in data && 'cost' in data ? (
+                        <span key={platform} className="mr-4">
+                          {platform}: {(data as any).tokens} tokens (${(data as any).cost.toFixed(5)})
+                        </span>
+                      ) : null
+                    ))}
+                  </div>
+                )}
               </div>
-            </TabsContent>
+            )}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Contenido Reciclado</h2>
+              <span className="text-sm text-gray-500">
+                Generado el {normalizedRecycledContent.createdAt.toLocaleDateString()}
+              </span>
+            </div>
 
-            {Object.keys(PLATFORM_CONFIGS).map((platform) => (
-              <TabsContent key={platform} value={platform}>
-                <div className="space-y-4">
-                  {normalizedRecycledContent.formats
-                    .filter(format => format.platform === platform)
-                    .map(renderFormatContent)}
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-7">
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                {Object.keys(PLATFORM_CONFIGS).map((platform) => (
+                  <TabsTrigger key={platform} value={platform} className="capitalize">
+                    {platform}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="all" className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {normalizedRecycledContent.formats.map((format, idx) => (
+                    <React.Fragment key={format.id || idx}>
+                      {renderFormatContent(format)}
+                    </React.Fragment>
+                  ))}
                 </div>
               </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      )}
+
+              {Object.keys(PLATFORM_CONFIGS).map((platform) => (
+                <TabsContent key={platform} value={platform}>
+                  <div className="space-y-4">
+                    {normalizedRecycledContent.formats
+                      .filter(format => format.platform === platform)
+                      .map((format, idx) => (
+                        <React.Fragment key={format.id || idx}>
+                          {renderFormatContent(format)}
+                        </React.Fragment>
+                      ))}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
+        );
+      })()}
     </div>
   );
 } 
