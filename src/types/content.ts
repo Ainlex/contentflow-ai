@@ -1,6 +1,6 @@
 // Tipos para generación de contenido
 
-export type ContentType = 'linkedin' | 'twitter' | 'instagram' | 'facebook' | 'blog'
+export type ContentType = 'linkedin' | 'twitter' | 'instagram' | 'facebook' | 'email'
 
 export type ToneType = 
   | 'professional'
@@ -54,43 +54,43 @@ export interface ContentPlatformConfig {
 export const CONTENT_PLATFORMS: Record<ContentType, ContentPlatformConfig> = {
   linkedin: {
     name: 'LinkedIn',
-    maxLength: 3000,
-    description: 'Posts profesionales para networking y thought leadership',
-    icon: '💼',
-    color: 'text-blue-600',
-    features: ['Professional tone', 'Industry insights', 'Networking focus', 'Hashtags'],
+    maxLength: 1300,
+    description: 'Post profesional para LinkedIn',
+    icon: '🔗',
+    color: 'text-blue-700',
+    features: ['Networking', 'Tono profesional', 'Insights', 'CTA']
   },
   twitter: {
-    name: 'Twitter/X',
+    name: 'Twitter',
     maxLength: 280,
-    description: 'Tweets concisos y impactantes',
+    description: 'Hilo de Twitter (5 tweets)',
     icon: '🐦',
-    color: 'text-black',
-    features: ['Concise messaging', 'Trending topics', 'Engagement focus', 'Hashtags'],
+    color: 'text-sky-500',
+    features: ['Hilo', 'Engagement', 'Brevity', 'Numeración']
   },
   instagram: {
     name: 'Instagram',
     maxLength: 2200,
-    description: 'Posts visuales con storytelling',
+    description: 'Caption visual para Instagram',
     icon: '📸',
-    color: 'text-pink-600',
-    features: ['Visual storytelling', 'Emojis', 'Hashtags', 'Engagement'],
+    color: 'text-pink-500',
+    features: ['Visual', 'Emojis', 'Hashtags', 'Engagement']
   },
   facebook: {
     name: 'Facebook',
     maxLength: 500,
-    description: 'Posts conversacionales para comunidad',
+    description: 'Post conversacional para Facebook',
     icon: '📘',
-    color: 'text-blue-700',
-    features: ['Community focus', 'Conversational', 'Engagement', 'Personal touch'],
+    color: 'text-blue-800',
+    features: ['Conversacional', 'Preguntas', 'Personal', 'Engagement']
   },
-  blog: {
-    name: 'Blog Post',
-    maxLength: 1500,
-    description: 'Artículos estructurados con profundidad',
-    icon: '📝',
-    color: 'text-green-600',
-    features: ['In-depth content', 'SEO optimized', 'Structured format', 'Thought leadership'],
+  email: {
+    name: 'Email Newsletter',
+    maxLength: 10000,
+    description: 'Newsletter profesional por email',
+    icon: '✉️',
+    color: 'text-gray-700',
+    features: ['Subject ~50 chars', 'Body 500-1000 palabras', 'Personalización', 'CTA']
   },
 }
 

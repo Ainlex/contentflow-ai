@@ -14,7 +14,7 @@ export interface GenerationOptions {
   topic: string
   tone: string
   targetAudience: string
-  contentType: 'linkedin' | 'twitter' | 'instagram' | 'facebook' | 'blog'
+  contentType: 'linkedin' | 'twitter' | 'instagram' | 'facebook' | 'blog' | 'email'
   additionalContext?: string
 }
 
@@ -27,7 +27,7 @@ export interface StreamingMessage {
 // Prompts específicos para cada plataforma
 const PLATFORM_PROMPTS = {
   linkedin: {
-    maxLength: 3000,
+    maxLength: 1300,
     format: 'Crea un post profesional para LinkedIn que genere engagement. Incluye:\n- Hook inicial atractivo\n- Contenido valioso con insights\n- Call-to-action al final\n- Hashtags relevantes (#)\n- Formato profesional pero accesible',
   },
   twitter: {
@@ -40,11 +40,38 @@ const PLATFORM_PROMPTS = {
   },
   facebook: {
     maxLength: 500,
-    format: 'Crea un post para Facebook que:\n- Sea conversacional y personal\n- Genere comentarios y engagement\n- Incluya pregunta o call-to-action\n- Tenga el tono apropiado para la audiencia\n- Sea fácil de leer',
+    format: 'Generate a Facebook post (MAX 500 characters). Keep it conversational, engaging, with emojis and 2-3 relevant hashtags. Focus on community engagement. Structure: Hook + value + CTA.',
   },
   blog: {
     maxLength: 1500,
     format: 'Crea un extracto de blog post que:\n- Tenga título atractivo\n- Introducción que enganche\n- 3-4 puntos clave desarrollados\n- Conclusión con call-to-action\n- Estructura clara con subtítulos',
+  },
+  email: {
+    maxLength: 10000,
+    format: `Generate a professional email newsletter for a B2B SaaS audience.
+AUDIENCE: Marketing managers, content creators, agency owners, solopreneurs
+TONE: Professional but approachable, action-oriented
+LENGTH: 300-800 words (concise and valuable)
+STRUCTURE:
+
+Subject line: Clear value proposition (40-50 chars)
+Personalized greeting with {{name}}
+Brief intro (2-3 sentences max)
+Main content: Actionable insights, tips, or case studies
+Clear call-to-action
+Professional signature block
+
+AVOID: Generic corporate speak, overly long explanations, vague promises
+INCLUDE: Specific benefits, real examples, clear next steps
+Topic: [USER_TOPIC]
+Target Audience: [USER_AUDIENCE]
+Tone: [USER_TONE]
+
+BUSINESS CONTEXT INTEGRATION:
+- Si topic es general → orientar hacia content marketing
+- Si audience es "empresas" → focus en B2B marketing
+- Si tone es "professional" → SaaS industry language
+- Incluir placeholder {{company}} para personalization`,
   },
 }
 

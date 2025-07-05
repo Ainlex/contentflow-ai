@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar tipos de contenido permitidos
-    const allowedContentTypes = ['linkedin', 'twitter', 'instagram', 'facebook', 'blog']
+    const allowedContentTypes = ['linkedin', 'twitter', 'instagram', 'facebook', 'blog', 'email']
     if (!allowedContentTypes.includes(body.contentType)) {
       return NextResponse.json(
         { error: 'Tipo de contenido no válido' },
